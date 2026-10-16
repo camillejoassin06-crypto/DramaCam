@@ -1,0 +1,104 @@
+name: weekly-drama
+
+# Generation hebdomadaire d'une serie : claude -p -> edge-tts -> FFmpeg -> HLS
+# -> upload R2 -> mise a jour de catalog.json + commit.
+#
+# C'est le SEUL endroit ou la generation complete tourne (fair-use : 1 serie par
+# semaine). En local, seul `npm run generate:dry` est autorise.
+on:
+  schedule:
+    # Lundi 03h00 UTC.
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      episodes:
+        description: "Nombre d'episodes a generer (1-50)"
+        default: '50'
+      dry_run:
+        description: 'Dry-run : ni modele, ni upload, ni commit'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Jamais deux generations en parallele : elles se disputeraient catalog.json.
+concurrency:
+  group: weekly-drama
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+
+      - name: Outils de rendu et de voix
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          pip install --disable-pip-version-check edge-tts
+
+      - name: CLI Claude Code (abonnement, pas l'API facturee)
+        run: npm install -g @anthropic-ai/claude-code
+
+      - run: npm install
+
+      - name: Garde-fous avant generation
+        run: |
+          npm run typecheck
+          npm test
+          npm run catalog:validate
+
+      - name: Generation
+        env:
+          # Jeton d'abonnement : `claude setup-token` en local, puis GitHub Secrets.
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_PUBLIC_BASE_URL: ${{ vars.R2_PUBLIC_BASE_URL }}
+          TTS_PROVIDER: edge-tts
+          IMAGE_PROVIDER: ${{ vars.IMAGE_PROVIDER || 'placeholder' }}
+          AI_STUDIO_API_KEY: ${{ secrets.AI_STUDIO_API_KEY }}
+        run: |
+          EPISODES="${{ inputs.episodes || '50' }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            npm --workspace pipeline run generate -- --dry-run --episodes "$EPISODES"
+          else
+            npm --workspace pipeline run generate -- --episodes "$EPISODES"
+          fi
+
+      - name: Rapport qualite
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: pipeline/out/quality-report.json
+          if-no-files-found: warn
+
+      - name: Revalider le catalogue avant commit
+        if: ${{ inputs.dry_run != true }}
+        run: npm run catalog:validate
+
+      - name: Commit du catalogue
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          if git diff --quiet -- catalog/; then
+            echo "catalog/ inchange : rien a commiter"
+            exit 0
+          fi
+          TITLE=$(node -e "const c=require('./catalog/catalog.json');process.stdout.write(c.series[0]?.title ?? 'serie')")
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add catalog/
+          git commit -m "feat(catalog): serie $TITLE"
+          git push

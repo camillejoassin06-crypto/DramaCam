@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dramaforge.invalid/catalog/schema.json",
+  "title": "DramaForge catalog (Option A)",
+  "description": "Unique contrat app<->contenu. Servi par GitHub Pages, consomme par StaticCatalogRepository. PERSONAL_MODE : aucun champ de prix, de verrou ou de monetisation n'est autorise.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "excludedTerms", "series"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "excludedTerms": {
+      "description": "Termes interdits dans les titres generes (marques existantes). Verifie par le pipeline avant publication.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 2 }
+    },
+    "series": { "type": "array", "items": { "$ref": "#/$defs/series" } }
+  },
+  "$defs": {
+    "series": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "logline", "genres", "language", "coverUrl", "publishedAt", "totalBytes", "episodes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "logline": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "genres": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string" } },
+        "language": { "enum": ["fr", "en"] },
+        "badges": { "type": "array", "items": { "enum": ["NOUVEAU", "EXCLUSIVE"] } },
+        "coverUrl": { "type": "string", "format": "uri" },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "totalBytes": {
+          "description": "Poids total de la serie sur R2. Sert a la purge au-dela de 9 Go.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "episodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/episode" } }
+      }
+    },
+    "episode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["number", "title", "durationSeconds", "hlsUrl", "sizeBytes"],
+      "properties": {
+        "number": { "type": "integer", "minimum": 1 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "durationSeconds": {
+          "description": "Cible produit : 120-195 s (2:00 a 3:15).",
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 300
+        },
+        "hlsUrl": { "type": "string", "format": "uri" },
+        "subtitlesUrl": { "type": "string", "format": "uri" },
+        "thumbnailUrl": { "type": "string", "format": "uri" },
+        "sizeBytes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

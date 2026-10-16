@@ -1,0 +1,38 @@
+name: pages
+
+# Publie catalog/ sur GitHub Pages : c'est la seule "API" de l'app.
+# L'app consomme https://<utilisateur>.github.io/<repo>/catalog.json
+on:
+  push:
+    branches: [main]
+    paths: ['catalog/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm install
+      # Ne jamais publier un catalogue invalide : l'app n'a pas d'autre source.
+      - run: npm run catalog:validate
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: catalog
+      - id: deployment
+        uses: actions/deploy-pages@v4

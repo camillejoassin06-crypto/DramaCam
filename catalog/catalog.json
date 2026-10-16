@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-16T00:00:00.000Z",
+  "excludedTerms": [
+    "dramawave",
+    "reelshort",
+    "dramabox",
+    "shortmax",
+    "netshort",
+    "flexTV"
+  ],
+  "series": [
+    {
+      "id": "le-train-de-minuit",
+      "title": "Le Train de Minuit",
+      "logline": "Chaque nuit je prends le dernier train, et chaque nuit un passager de plus connait mon nom.",
+      "genres": [
+        "Mystere",
+        "Suspense"
+      ],
+      "language": "fr",
+      "badges": [
+        "NOUVEAU"
+      ],
+      "coverUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/cover.png",
+      "publishedAt": "2026-10-13T03:00:00.000Z",
+      "totalBytes": 0,
+      "episodes": [
+        {
+          "number": 1,
+          "title": "Le wagon qui ne figure sur aucun plan",
+          "durationSeconds": 150,
+          "hlsUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/ep-001/master.m3u8",
+          "subtitlesUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/ep-001/fr.vtt",
+          "thumbnailUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/ep-001/thumb.jpg",
+          "sizeBytes": 0
+        },
+        {
+          "number": 2,
+          "title": "Celle qui connait mon nom",
+          "durationSeconds": 162,
+          "hlsUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/ep-002/master.m3u8",
+          "subtitlesUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/ep-002/fr.vtt",
+          "thumbnailUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/ep-002/thumb.jpg",
+          "sizeBytes": 0
+        },
+        {
+          "number": 3,
+          "title": "Le billet date de demain",
+          "durationSeconds": 174,
+          "hlsUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/ep-003/master.m3u8",
+          "subtitlesUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/ep-003/fr.vtt",
+          "thumbnailUrl": "https://media.example-placeholder.dev/series/le-train-de-minuit/ep-003/thumb.jpg",
+          "sizeBytes": 0
+        }
+      ]
+    }
+  ]
+}

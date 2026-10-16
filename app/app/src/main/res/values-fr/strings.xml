@@ -1,0 +1,79 @@
+<resources>
+    <string name="app_name">DramaForge</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_drafts">Brouillons</string>
+    <string name="nav_settings">Paramètres</string>
+    <string name="action_back">Retour</string>
+    <string name="action_save">Enregistrer</string>
+    <string name="action_clear">Effacer</string>
+
+    <!-- Accueil -->
+    <string name="home_tab_trending">Tendance</string>
+    <string name="home_tab_ranking">Classement</string>
+    <string name="home_tab_fresh">Inédit</string>
+    <string name="home_tab_categories">Catégories</string>
+    <string name="badge_new">NOUVEAU</string>
+    <string name="badge_exclusive">EXCLUSIVE</string>
+
+    <!-- Détail -->
+    <string name="detail_play_first">Lire l\'épisode 1</string>
+    <string name="detail_episodes">Épisodes</string>
+    <string name="episode_label">Épisode %1$d</string>
+    <string name="episode_duration">%1$d min %2$02d s</string>
+
+    <!-- Lecteur -->
+    <string name="player_subtitles_available">Sous-titres disponibles</string>
+    <string name="player_pending">Lecteur vertical Media3 — prochaine étape.</string>
+
+    <!-- Paramètres : clé API -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_personal_mode">Mode personnel : tous les épisodes sont débloqués.</string>
+    <string name="settings_section_api">Clé API Anthropic</string>
+    <string name="settings_api_key_hint">sk-ant-…</string>
+    <string name="settings_api_key_stored">Une clé est enregistrée, chiffrée sur cet appareil.</string>
+    <string name="settings_api_key_absent">Aucune clé. La génération quotidienne reste désactivée.</string>
+    <string name="settings_api_key_show">Afficher la clé</string>
+    <string name="settings_cost_warning">Chaque génération est facturée sur votre propre clé. Une série complète représente environ %1$d appels au modèle.</string>
+
+    <!-- Paramètres : génération -->
+    <string name="settings_section_generation">Génération quotidienne</string>
+    <string name="settings_model">Modèle</string>
+    <string name="settings_effort">Effort (principal levier de coût)</string>
+    <string name="settings_episodes">Épisodes par série : %1$d</string>
+    <string name="settings_review">Revue d\'originalité et de sûreté</string>
+    <string name="settings_review_hint">Un appel de plus par épisode. Signale les reprises de marque et les contenus à risque.</string>
+    <string name="settings_daily">Générer une série chaque jour</string>
+    <string name="settings_daily_hint">Tourne en Wi-Fi ou en données mobiles, et reprend où elle s\'est arrêtée si elle est interrompue.</string>
+    <string name="settings_generate_now">Générer maintenant</string>
+    <string name="settings_cancel_run">Annuler la génération</string>
+    <string name="settings_running">Génération en cours…</string>
+    <string name="settings_status">État : %1$s</string>
+    <string name="settings_text_only">Texte uniquement : ce sont des scripts, pas des épisodes jouables. La vidéo exige FFmpeg et ne peut pas tourner sur un téléphone.</string>
+
+    <!-- Worker de génération -->
+    <string name="generation_channel_name">Génération de série</string>
+    <string name="generation_status_no_key">Aucune clé API : ajoutez-en une dans les Paramètres.</string>
+    <string name="generation_status_concept">Écriture du concept et de la bible…</string>
+    <string name="generation_status_progress">Épisode %1$d sur %2$d</string>
+    <string name="generation_status_interrupted">Interrompu à %1$d sur %2$d, reprise prévue.</string>
+    <string name="generation_status_done">« %1$s » terminée — %2$d épisodes.</string>
+
+    <!-- Brouillons -->
+    <string name="drafts_title">Brouillons</string>
+    <string name="drafts_empty">Aucune série. Ajoutez votre clé API dans les Paramètres, puis touchez Générer maintenant.</string>
+    <string name="drafts_in_progress">En cours</string>
+    <string name="drafts_issues">%1$d point(s) à revoir</string>
+    <string name="draft_shots">Plans</string>
+    <string name="draft_cliffhanger">Cliffhanger</string>
+    <string name="draft_characters">Personnages</string>
+    <string name="draft_delete">Supprimer cette série</string>
+    <string name="settings_test_key">Tester la clé</string>
+    <string name="settings_test_running">Test en cours…</string>
+    <string name="settings_test_ok">Clé fonctionnelle — %1$s</string>
+    <string name="settings_queued">En attente du réseau ou de la batterie…</string>
+    <string name="settings_error">Échec : %1$s</string>
+    <string name="settings_notifications_needed">Autorisez les notifications pour qu\'une génération puisse dépasser 10 minutes.</string>
+    <string name="generation_status_gave_up">Abandon après %1$d tentatives : %2$s</string>
+</resources>

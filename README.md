@@ -40,8 +40,9 @@ pipeline/  (Node 22 + TypeScript)        catalog/              app/ (Android)
   propriété du format, pas une option de l'app.
 - **Vidéos** sur Cloudflare R2 (offre gratuite 10 Go). Au-delà de 9 Go,
   `pipeline/src/publish.ts` purge la série la plus ancienne.
-- **Génération de texte** par `claude -p` headless (abonnement Claude Code).
-  L'API Anthropic facturée à l'usage est interdite, comme tout service payant.
+- **Génération de texte** par `claude -p` headless (abonnement Claude Code) pour
+  le pipeline, qui reste à coût nul. L'app, elle, utilise l'API Anthropic avec
+  la clé de l'utilisateur — voir « Deux voies de génération » ci-dessus.
 - **Progression et favoris** 100 % locaux (Room). Aucun compte, aucune
   télémétrie, aucune monétisation.
 
@@ -100,7 +101,7 @@ Prérequis locaux optionnels (FFmpeg, edge-tts) : voir
 | Pipeline : montage FFmpeg + HLS | implémenté, **non exécuté** (FFmpeg absent de la machine de dev) |
 | Pipeline : `LocalSdProvider` (ComfyUI) | point d'intégration, graphe à renseigner |
 | App : coque de navigation PERSONAL_MODE, DA, i18n FR/EN | ✅ compile — APK debug 26 Mo, APK release signé 6,1 Mo (non testé au runtime) |
-| App : génération quotidienne de scripts (clé API dans les Paramètres) | ✅ compile, 27 tests unitaires, **non testée au runtime** |
+| App : génération quotidienne de scripts (clé API dans les Paramètres) | ✅ compile, 33 tests unitaires, bouton « Tester la clé » pour diagnostiquer, **non testée au runtime** |
 | App : `StaticCatalogRepository` + cache Room | à faire — remplace `SampleCatalog` |
 | App : lecteur vertical Media3 paginé | à faire |
 | Wrapper Gradle (`app/gradlew`) | ✅ généré en 8.9 et commité |

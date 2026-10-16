@@ -1,0 +1,79 @@
+<resources>
+    <string name="app_name">DramaForge</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_drafts">Drafts</string>
+    <string name="nav_settings">Settings</string>
+    <string name="action_back">Back</string>
+    <string name="action_save">Save</string>
+    <string name="action_clear">Clear</string>
+
+    <!-- Home -->
+    <string name="home_tab_trending">Trending</string>
+    <string name="home_tab_ranking">Ranking</string>
+    <string name="home_tab_fresh">Fresh</string>
+    <string name="home_tab_categories">Categories</string>
+    <string name="badge_new">NEW</string>
+    <string name="badge_exclusive">EXCLUSIVE</string>
+
+    <!-- Detail -->
+    <string name="detail_play_first">Play episode 1</string>
+    <string name="detail_episodes">Episodes</string>
+    <string name="episode_label">Episode %1$d</string>
+    <string name="episode_duration">%1$d min %2$02d s</string>
+
+    <!-- Player -->
+    <string name="player_subtitles_available">Subtitles available</string>
+    <string name="player_pending">Vertical Media3 player — next step.</string>
+
+    <!-- Settings: API key -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_personal_mode">Personal mode: every episode is unlocked.</string>
+    <string name="settings_section_api">Anthropic API key</string>
+    <string name="settings_api_key_hint">sk-ant-…</string>
+    <string name="settings_api_key_stored">A key is stored, encrypted on this device.</string>
+    <string name="settings_api_key_absent">No key yet. Daily generation stays off.</string>
+    <string name="settings_api_key_show">Show the key</string>
+    <string name="settings_cost_warning">Every generation is billed on your own key. A full series is about %1$d model calls.</string>
+
+    <!-- Settings: generation -->
+    <string name="settings_section_generation">Daily generation</string>
+    <string name="settings_model">Model</string>
+    <string name="settings_effort">Effort (main cost lever)</string>
+    <string name="settings_episodes">Episodes per series: %1$d</string>
+    <string name="settings_review">Originality and safety review</string>
+    <string name="settings_review_hint">One extra call per episode. Flags brand reuse and unsafe content.</string>
+    <string name="settings_daily">Generate a series every day</string>
+    <string name="settings_daily_hint">Runs on Wi-Fi or mobile data, resumes where it stopped if interrupted.</string>
+    <string name="settings_generate_now">Generate now</string>
+    <string name="settings_cancel_run">Cancel the run</string>
+    <string name="settings_running">Generation in progress…</string>
+    <string name="settings_status">Status: %1$s</string>
+    <string name="settings_text_only">Text only: these are scripts, not playable episodes. Video needs FFmpeg and cannot run on a phone.</string>
+
+    <!-- Generation worker -->
+    <string name="generation_channel_name">Series generation</string>
+    <string name="generation_status_no_key">No API key: add one in Settings.</string>
+    <string name="generation_status_concept">Writing the concept and story bible…</string>
+    <string name="generation_status_progress">Episode %1$d of %2$d</string>
+    <string name="generation_status_interrupted">Interrupted at %1$d of %2$d, will resume.</string>
+    <string name="generation_status_done">“%1$s” done — %2$d episodes.</string>
+
+    <!-- Drafts -->
+    <string name="drafts_title">Drafts</string>
+    <string name="drafts_empty">No series yet. Add your API key in Settings, then tap Generate now.</string>
+    <string name="drafts_in_progress">In progress</string>
+    <string name="drafts_issues">%1$d point(s) to review</string>
+    <string name="draft_shots">Shots</string>
+    <string name="draft_cliffhanger">Cliffhanger</string>
+    <string name="draft_characters">Characters</string>
+    <string name="draft_delete">Delete this series</string>
+    <string name="settings_test_key">Test the key</string>
+    <string name="settings_test_running">Testing…</string>
+    <string name="settings_test_ok">Key works — %1$s</string>
+    <string name="settings_queued">Waiting for network or battery…</string>
+    <string name="settings_error">Failed: %1$s</string>
+    <string name="settings_notifications_needed">Allow notifications so a run can exceed 10 minutes.</string>
+    <string name="generation_status_gave_up">Gave up after %1$d attempts: %2$s</string>
+</resources>

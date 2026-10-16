@@ -1,0 +1,11 @@
+.env
+node_modules/
+dist/
+.gradle/
+build/
+**/build/
+.idea/
+local.properties
+*.keystore
+*.jks
+pipeline/out/

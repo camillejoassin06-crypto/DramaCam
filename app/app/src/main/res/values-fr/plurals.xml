@@ -1,0 +1,9 @@
+<resources>
+    <!-- En français, "one" couvre 0 et 1 (règles CLDR). -->
+    <plurals name="episode_count">
+        <item quantity="one">%1$d épisode</item>
+        <!-- "many" : exigé par CLDR pour le français (grands nombres). -->
+        <item quantity="many">%1$d épisodes</item>
+        <item quantity="other">%1$d épisodes</item>
+    </plurals>
+</resources>

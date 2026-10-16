@@ -1,0 +1,7 @@
+<resources>
+    <!-- Une série d'un seul épisode doit lire "1 episode", pas "1 episodes". -->
+    <plurals name="episode_count">
+        <item quantity="one">%1$d episode</item>
+        <item quantity="other">%1$d episodes</item>
+    </plurals>
+</resources>

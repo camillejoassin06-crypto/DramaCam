@@ -1,0 +1,20 @@
+{
+  "name": "@dramaforge/pipeline",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/schemas.test.ts test/catalog.test.ts test/subtitles.test.ts",
+    "catalog:validate": "tsx src/validate-catalog.ts",
+    "generate": "tsx src/generate-weekly.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.705.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

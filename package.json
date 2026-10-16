@@ -1,0 +1,11 @@
+{
+  "name": "dramaforge",
+  "private": true,
+  "workspaces": ["pipeline"],
+  "scripts": {
+    "typecheck": "npm --workspace pipeline run typecheck",
+    "test": "npm --workspace pipeline test",
+    "catalog:validate": "npm --workspace pipeline run catalog:validate",
+    "generate:dry": "npm --workspace pipeline run generate -- --dry-run --episodes 3"
+  }
+}
