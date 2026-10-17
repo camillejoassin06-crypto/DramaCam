@@ -1,0 +1,64 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Seules destinations reseau : le modele de texte choisi
+         (api.anthropic.com ou generativelanguage.googleapis.com) et, si
+         active, image.pollinations.ai. Les videos restent sur le telephone. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Le studio (texte + voix + images + FFmpeg) depasse largement les
+         ~10 minutes d'un Worker ordinaire : il tourne en avant-plan avec une
+         notification de progression. mediaProcessing a partir d'Android 15. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Depuis Android 12, un job en arriere-plan ne peut passer en avant-plan
+         que si l'app est exemptee d'optimisation de batterie : sans cela il est
+         coupe toutes les ~10 minutes (il reprend, mais plus lentement). APK
+         personnelle hors Play Store : la demande directe est appropriee. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Le moteur de synthese vocale du telephone est un service externe :
+         Android 11+ exige de declarer qu'on le cherche. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".JeDramaApplication"
+        android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher"
+        android:roundIcon="@drawable/ic_launcher"
+        android:theme="@style/Theme.JeDrama"
+        android:supportsRtl="true"
+        android:allowBackup="false">
+
+        <!-- Portrait verrouille : le format du produit est le 9:16 plein ecran.
+             Un lecteur en paysage n'a pas de sens ici, donc les avertissements
+             lint sur l'orientation fixe sont volontairement ignores. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- WorkManager fait tourner la generation en avant-plan. Depuis
+             Android 14, un service d'avant-plan doit declarer son type, sinon
+             il echoue au demarrage. On complete donc la declaration fournie
+             par la bibliotheque. -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync|mediaProcessing"
+            tools:node="merge" />
+    </application>
+
+</manifest>

@@ -1,0 +1,27 @@
+# Gradle
+.gradle/
+build/
+
+# Android
+*.apk
+*.aab
+*.keystore
+*.jks
+local.properties
+
+# Hilt
+**/generated/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.key
+*.pem
+secrets/

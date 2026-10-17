@@ -1,0 +1,11 @@
+<resources>
+    <!-- Theme de demarrage, avant que Compose ne prenne le relais.
+         Les memes couleurs que ui/Theme.kt pour eviter un flash clair. -->
+    <style name="Theme.JeDrama" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:colorBackground">#0E0B16</item>
+        <item name="android:windowBackground">#0E0B16</item>
+        <item name="android:colorAccent">#6C2BD9</item>
+        <item name="android:navigationBarColor">#0E0B16</item>
+        <item name="android:statusBarColor">#0E0B16</item>
+    </style>
+</resources>

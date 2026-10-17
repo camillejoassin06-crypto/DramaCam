@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JeDrama-Fork</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_drafts">Séries</string>
+    <string name="nav_favorites">Favoris</string>
+    <string name="nav_settings">Paramètres</string>
+    <string name="action_back">Retour</string>
+    <string name="action_save">Enregistrer</string>
+    <string name="action_clear">Effacer</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_cancel">Annuler</string>
+
+    <!-- Accueil -->
+    <string name="home_empty">Aucune série pour l'instant. Dans Paramètres : ajoutez une clé (Claude ou Gemini), puis touchez « Générer maintenant » ou activez la génération quotidienne.</string>
+    <string name="home_progress">%1$d / %2$d épisodes</string>
+    <string name="badge_new">NOUVEAU</string>
+
+    <!-- Détail -->
+    <string name="detail_play_first">Lire l'épisode 1</string>
+    <string name="detail_resume">Reprendre l'épisode %1$d</string>
+    <string name="detail_episodes">Épisodes</string>
+    <string name="detail_delete_warning">Le script et toutes les vidéos de cette série seront effacés du téléphone.</string>
+    <string name="episode_label">Épisode %1$d</string>
+    <string name="episode_duration">%1$d min %2$02d s</string>
+
+    <!-- Paramètres -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_personal_mode">Usage personnel : tout est généré et stocké sur ce téléphone, sans serveur ni compte.</string>
+    <string name="settings_section_generation">Génération quotidienne</string>
+    <string name="settings_section_text">Modèle de texte</string>
+    <string name="settings_section_render">Images et montage</string>
+    <string name="provider_claude">Claude</string>
+    <string name="provider_gemini">Gemini (gratuit)</string>
+    <string name="settings_claude_cost">Facturé sur votre clé Anthropic. Claude Haiku 5.5 en effort « low » : environ 1 à 3 centimes pour 5 épisodes.</string>
+    <string name="settings_gemini_cost">Offre gratuite Google AI Studio (projet sans facturation) : 0 €. Quotas journaliers limités, visibles dans la console AI Studio ; la génération reprend le lendemain s'ils sont atteints.</string>
+    <string name="settings_key_claude">Clé API Anthropic</string>
+    <string name="settings_key_gemini">Clé API Google AI Studio</string>
+    <string name="settings_api_key_stored">Une clé est enregistrée, chiffrée sur cet appareil.</string>
+    <string name="settings_api_key_absent">Aucune clé pour ce fournisseur.</string>
+    <string name="settings_api_key_show">Afficher la clé</string>
+    <string name="settings_model">Modèle</string>
+    <string name="settings_effort">Effort (principal levier de coût)</string>
+    <string name="settings_test_key">Tester la clé</string>
+    <string name="settings_test_running">Test en cours…</string>
+    <string name="settings_test_ok">Clé fonctionnelle — %1$s</string>
+    <string name="settings_review">Revue d'originalité et de sûreté</string>
+    <string name="settings_review_hint">Un appel de plus par épisode ; un épisode signalé est réécrit une fois.</string>
+    <string name="settings_daily">Générer chaque jour</string>
+    <string name="settings_daily_hint">Une fois par jour, Android lance le studio quand les conditions ci-dessous sont réunies.</string>
+    <string name="settings_charging">Seulement en charge</string>
+    <string name="settings_charging_hint">Le montage vidéo sollicite le processeur : idéal la nuit, branché.</string>
+    <string name="settings_wifi">Seulement en Wi-Fi</string>
+    <string name="settings_wifi_hint">Évite d'utiliser les données mobiles pour les images.</string>
+    <string name="settings_episodes">Épisodes par série : %1$d</string>
+    <string name="settings_episodes_hint">La série en cours avance chaque jour ; une nouvelle commence quand elle est terminée.</string>
+    <string name="settings_generate_now">Générer maintenant (%1$d épisodes)</string>
+    <string name="settings_cancel_run">Annuler la génération</string>
+    <string name="settings_running">Génération en cours…</string>
+    <string name="settings_queued">En attente (réseau, batterie ou autre génération)…</string>
+    <string name="settings_status">État : %1$s</string>
+    <string name="settings_error">Échec : %1$s</string>
+    <string name="images_ai">Images IA (gratuit)</string>
+    <string name="images_offline">Hors ligne</string>
+    <string name="images_ai_hint">Pollinations, sans clé ni compte : environ une image toutes les 15 secondes. En cas d'échec, l'image hors ligne prend le relais.</string>
+    <string name="images_offline_hint">Visuels abstraits dessinés sur le téléphone : aucun réseau, rendu plus rapide.</string>
+    <string name="settings_hd">Rendu 1080p</string>
+    <string name="settings_hd_hint">Par défaut 720p : deux fois plus rapide à monter et moitié moins lourd.</string>
+    <string name="settings_ambience">Nappe musicale</string>
+    <string name="settings_ambience_hint">Fond sonore généré par FFmpeg, atténué automatiquement sous les voix.</string>
+    <string name="settings_ffmpeg_check">Vérifier FFmpeg</string>
+    <string name="settings_storage">Vidéos stockées : %1$s</string>
+    <string name="settings_battery">Autoriser le travail en arrière-plan</string>
+    <string name="settings_battery_hint">Retire JeDrama de l'optimisation de batterie : la génération de nuit peut alors tourner d'une traite au lieu d'être coupée toutes les 10 minutes.</string>
+    <string name="settings_notifications_needed">Autorisez les notifications pour qu'une génération puisse dépasser 10 minutes.</string>
+
+    <!-- Studio (worker) -->
+    <string name="generation_channel_name">Studio JeDrama-Fork</string>
+    <string name="generation_status_no_key">Aucune clé API : ajoutez-en une dans les Paramètres.</string>
+    <string name="generation_status_no_ffmpeg">FFmpeg est absent de cette APK : recompilez-la avec scripts/build-ffmpeg-android.sh.</string>
+    <string name="generation_status_concept">Écriture du concept et de la bible…</string>
+    <string name="generation_status_cover">Affiche de « %1$s »…</string>
+    <string name="generation_status_writing">Script de l'épisode %1$d sur %2$d…</string>
+    <string name="generation_status_rendering">Épisode %1$d : plan %2$d sur %3$d</string>
+    <string name="generation_status_progress">Épisode %1$d sur %2$d</string>
+    <string name="generation_status_interrupted">Interrompu à l'épisode %1$d sur %2$d, reprise prévue.</string>
+    <string name="generation_status_done">%1$d épisode(s) prêt(s) — « %2$s » : %3$d / %4$d.</string>
+    <string name="generation_status_gave_up">Abandon après %1$d tentatives : %2$s</string>
+    <string name="generation_issue_offline_images">Épisode %1$d : %2$d image(s) hors ligne (service d'images indisponible).</string>
+
+    <!-- Scripts -->
+    <string name="drafts_title">Séries</string>
+    <string name="drafts_empty">Aucun script. Ajoutez votre clé dans les Paramètres, puis touchez « Générer maintenant ».</string>
+    <string name="drafts_in_progress">En cours</string>
+    <string name="drafts_issues">%1$d point(s) à revoir</string>
+    <string name="draft_shots">Plans</string>
+    <string name="draft_cliffhanger">Cliffhanger</string>
+    <string name="draft_characters">Personnages</string>
+    <string name="draft_delete">Supprimer cette série</string>
+
+    <!-- Favoris et recherche -->
+    <string name="favorites_title">Favoris</string>
+    <string name="favorites_empty">Aucune série favorie pour l'instant.</string>
+    <string name="action_favorite">Ajouter aux favoris</string>
+    <string name="action_unfavorite">Retirer des favoris</string>
+    <string name="search_hint">Rechercher une série…</string>
+    <string name="search_results">Résultats de la recherche</string>
+    <string name="search_no_results">Aucun résultat</string>
+
+    <!-- Continue watching -->
+    <string name="continue_watching">Reprendre la lecture</string>
+    <string name="continue_watching_empty">Rien à reprendre pour l'instant.</string>
+
+    <!-- Statut -->
+    <string name="status_generating">Génération en cours…</string>
+    <string name="status_ready">Prêt</string>
+    <string name="status_error">Erreur</string>
+
+    <!-- Cache -->
+    <string name="cache_clear">Vider le cache d'images</string>
+    <string name="cache_size">Cache : %1$s</string>
+</resources>
