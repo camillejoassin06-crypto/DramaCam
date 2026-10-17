@@ -25,3 +25,8 @@ Thumbs.db
 *.key
 *.pem
 secrets/
+# Binaires FFmpeg (compilés localement)
+app/app/src/main/jniLibs/
+
+# APK tiers / décompilés (ne jamais versionner)
+sources/

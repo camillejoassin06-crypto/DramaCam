@@ -75,6 +75,9 @@ object GenerationScheduler {
      */
     fun runNow(context: Context) {
         // Declenchement manuel : ni secteur ni Wi-Fi exiges, l'utilisateur est la.
+        // Efface l'etat precedent : sinon une execution interrompue peut laisser
+        // "Generation en cours" visible comme si c'etait encore son erreur.
+        SettingsStore(context).lastStatus = ""
         val request = OneTimeWorkRequestBuilder<DailySeriesWorker>()
             .setConstraints(constraints(SettingsStore(context), manual = true))
             .build()

@@ -144,7 +144,12 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         }
         // Le job quotidien n'expose pas son echec dans WorkManager : a defaut de
         // message en direct, on affiche le dernier etat ecrit par le worker.
-        (state.message ?: settings.lastStatus.takeUnless { state.running || state.queued })
+        val statusMessage = when {
+            state.failed -> state.message?.takeIf { it.isNotBlank() }
+                ?: stringResource(R.string.generation_status_unknown_failure)
+            else -> state.message ?: settings.lastStatus.takeUnless { state.running || state.queued }
+        }
+        statusMessage
             ?.takeIf { it.isNotBlank() }?.let { message ->
             Text(
                 if (state.failed) stringResource(R.string.settings_error, message) else stringResource(R.string.settings_status, message),

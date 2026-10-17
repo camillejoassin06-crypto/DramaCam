@@ -27,7 +27,7 @@ class Prompts(private val context: Context) {
         renderTemplate(template(name), vars)
 
     companion object {
-        private val TOKEN = Regex("""\{\{(\w+)}}""")
+        private val TOKEN = Regex("""\{\{(\w+)\}\}""")
 
         /** Remplace les jetons {{NOM}}. Jette si un jeton reste non resolu. */
         fun renderTemplate(template: String, vars: Map<String, Any>): String {

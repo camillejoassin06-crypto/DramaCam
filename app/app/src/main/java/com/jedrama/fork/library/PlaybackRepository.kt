@@ -1,53 +1,63 @@
-﻿package com.jedrama.fork.library
+package com.jedrama.fork.library
 
+import android.content.Context
+import android.content.SharedPreferences
 import com.jedrama.fork.generation.SeriesDraft
+import com.jedrama.fork.generation.SeriesDraftStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/**
- * Ã‰tat de lecture : reprise, favoris, progression.
- */
+/** État de lecture : reprise, favoris, progression. */
 interface PlaybackRepository {
 
-    /** Ã‰pisode en cours de lecture pour une sÃ©rie donnÃ©e. */
+    /** Épisode en cours de lecture pour une série donnée. */
     fun lastEpisode(seriesId: String): Int
 
-    /** Position de lecture (ms) pour un Ã©pisode. */
+    /** Position de lecture (ms) pour un épisode. */
     fun position(seriesId: String, episode: Int): Long
 
     /** Sauvegarde la position de lecture. */
     fun savePosition(seriesId: String, episode: Int, positionMs: Long)
 
-    /** Marque un Ã©pisode comme vu. */
+    /** Marque un épisode comme vu. */
     fun markWatched(seriesId: String, episode: Int)
 
-    /** VÃ©rifie si un Ã©pisode est vu. */
+    /** Vérifie si un épisode est vu. */
     fun isWatched(seriesId: String, episode: Int): Boolean
 
-    /** Liste des Ã©pisodes jouables d'une sÃ©rie. */
+    /** Liste des épisodes jouables d'une série. */
     fun playable(draft: SeriesDraft): List<Int>
 
-    /** Ã‰pisodes vus (pour l'affichage "continue watching"). */
+    /** Épisodes vus (pour l'affichage « continue watching »). */
     fun watchedEpisodes(seriesId: String): List<Int>
 
-    /** Ajoute/retire une sÃ©rie des favoris. */
+    /** Ajoute/retire une série des favoris (« Ma liste »). */
     fun toggleFavorite(seriesId: String)
 
-    /** VÃ©rifie si une sÃ©rie est favorie. */
+    /** Vérifie si une série est favorie. */
     fun isFavorite(seriesId: String): Boolean
 
-    /** Liste des sÃ©ries favoris. */
+    /** Liste des séries favoris. */
     val favoriteSeries: Flow<List<String>>
 }
 
-/** ImplÃ©mentation concrÃ¨te basÃ©e sur SharedPreferences. */
-class PlaybackRepositoryImpl(private val library: Library) : PlaybackRepository {
+/**
+ * Implémentation concrète basée sur SharedPreferences.
+ *
+ * Les favoris (« Ma liste ») persistent entre les lancements : sans cela, la
+ * liste se réinitialisait à chaque démarrage de l'application.
+ */
+class PlaybackRepositoryImpl(
+    private val library: Library,
+    private val store: SeriesDraftStore,
+    private val prefs: SharedPreferences,
+) : PlaybackRepository {
 
-    private val _favorites = MutableStateFlow<List<String>>(emptyList())
+    private val _favorites = MutableStateFlow(
+        prefs.getStringSet(KEY_FAVORITES, emptySet())?.toList().orEmpty(),
+    )
     override val favoriteSeries: Flow<List<String>> = _favorites.asStateFlow()
-
-    private val prefsKey = "jedrama-favorites"
 
     override fun lastEpisode(seriesId: String): Int = library.lastEpisode(seriesId)
 
@@ -68,40 +78,29 @@ class PlaybackRepositoryImpl(private val library: Library) : PlaybackRepository 
     override fun playable(draft: SeriesDraft): List<Int> = library.playable(draft)
 
     override fun watchedEpisodes(seriesId: String): List<Int> {
-        // Les Ã©pisodes vus sont suivis dans SharedPreferences par Library.
-        // Retourne la liste des Ã©pisodes marquÃ©s comme vus.
-        return library.playable(draftFromId(seriesId)).filter { isWatched(seriesId, it) }
+        val draft = store.load(seriesId) ?: return emptyList()
+        return library.playable(draft).filter { isWatched(seriesId, it) }
     }
 
     override fun toggleFavorite(seriesId: String) {
         val current = _favorites.value
         val updated = if (current.contains(seriesId)) {
-            current.filter { it != seriesId }
+            current - seriesId
         } else {
             current + seriesId
         }
         _favorites.value = updated
-        saveFavorites(updated)
+        prefs.edit().putStringSet(KEY_FAVORITES, updated.toSet()).apply()
     }
 
     override fun isFavorite(seriesId: String): Boolean =
         _favorites.value.contains(seriesId)
 
-    private fun draftFromId(seriesId: String): com.jedrama.fork.generation.SeriesDraft {
-        // BibliothÃ¨que simple : on crÃ©e un draft minimal pour l'API playable.
-        // En pratique, utiliser SeriesRepository pour avoir le vrai draft.
-        return com.jedrama.fork.generation.SeriesDraft(
-            concept = com.jedrama.fork.generation.Concept().apply { id = seriesId },
-            bible = com.jedrama.fork.generation.Bible(),
-        )
-    }
-
-    private fun saveFavorites(favorites: List<String>) {
-        // Persister dans SharedPreferences (simplifiÃ© : en mÃ©moire pour cette version)
-        // Une implÃ©mentation complÃ¨te utiliserait EncryptedSharedPreferences ou DataStore.
-    }
-
-    private val loadFavorites: List<String> by lazy {
-        emptyList() // Ã€ implÃ©menter avec DataStore ou SharedPreferences
+    private companion object {
+        const val KEY_FAVORITES = "favorites"
     }
 }
+
+/** Préférences de suivi de lecture (fournies par le module Hilt). */
+fun playbackPreferences(context: Context): SharedPreferences =
+    context.getSharedPreferences("jedrama-playback", Context.MODE_PRIVATE)

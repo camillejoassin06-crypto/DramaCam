@@ -85,10 +85,24 @@ class DailySeriesWorker(
         } catch (error: Exception) {
             // Filet de securite : une erreur inattendue (FFmpeg, synthese vocale,
             // disque plein) doit laisser un message lisible a l'ecran.
-            fail(settings, "${error.javaClass.simpleName} : ${error.message}")
+            fail(settings, describeError(error))
+        } catch (error: Throwable) {
+            // Les erreurs de liaison (par ex. classe manquante après R8) ne sont
+            // pas des Exception. Sans ce filet, WorkManager marque le travail
+            // FAILED sans outputData et l'UI ne peut afficher que l'ancien état.
+            if (error is VirtualMachineError || error is ThreadDeath) throw error
+            fail(settings, "Erreur interne : ${describeError(error)}")
         } finally {
-            speech?.shutdown()
-            running.unlock()
+            // La fermeture du moteur TTS ne doit jamais remplacer le résultat
+            // obtenu (ou empêcher la libération du verrou) si Android a déjà
+            // coupé son service vocal.
+            try {
+                speech?.shutdown()
+            } catch (_: Throwable) {
+                // Le rendu est déjà terminé ou l'échec a déjà été enregistré.
+            } finally {
+                running.unlock()
+            }
         }
     }
 
@@ -224,6 +238,26 @@ class DailySeriesWorker(
     private suspend fun fail(settings: SettingsStore, message: String): Result {
         settings.lastStatus = message
         return Result.failure(workDataOf(KEY_MESSAGE to message))
+    }
+
+    /** Deplie les causes imbriquees (notamment ExceptionInInitializerError). */
+    private fun describeError(error: Throwable): String {
+        val chain = mutableListOf<Throwable>()
+        var current: Throwable? = error
+        while (current != null && chain.size < 6 && chain.none { it === current }) {
+            chain += current
+            current = current.cause
+        }
+        val causeText = chain.joinToString(" -> ") { cause ->
+            val detail = cause.message?.takeIf { it.isNotBlank() }
+            if (detail == null) cause.javaClass.simpleName else "${cause.javaClass.simpleName}: $detail"
+        }
+        val location = chain.asSequence()
+            .flatMap { it.stackTrace.asSequence() }
+            .firstOrNull { it.className.startsWith("com.jedrama.fork.") }
+            ?.let { " [${it.className.substringAfterLast('.')}#${it.methodName}:${it.lineNumber}]" }
+            .orEmpty()
+        return causeText + location
     }
 
     /** Publie l'etat vers l'UI, les preferences et la notification d'un coup. */

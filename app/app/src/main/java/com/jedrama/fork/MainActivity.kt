@@ -1,86 +1,49 @@
-﻿package com.jedrama.fork
+package com.jedrama.fork
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
-import com.jedrama.fork.generation.GenerationScheduler
-import com.jedrama.fork.generation.GenerationState
-import com.jedrama.fork.generation.SeriesDraft
-import com.jedrama.fork.generation.SeriesDraftStore
-import com.jedrama.fork.library.Library
 import com.jedrama.fork.library.PlaybackRepository
 import com.jedrama.fork.library.SeriesRepository
-import com.jedrama.fork.ui.DraftDetailScreen
-import com.jedrama.fork.ui.DraftEpisodeScreen
-import com.jedrama.fork.ui.DraftsScreen
-import com.jedrama.fork.ui.FavoritesScreen
-import com.jedrama.fork.ui.JeDramaTheme
-import com.jedrama.fork.ui.Gold
+import com.jedrama.fork.ui.ForYouScreen
+import com.jedrama.fork.ui.MyListScreen
 import com.jedrama.fork.ui.PlayerScreen
+import com.jedrama.fork.ui.ProfileScreen
+import com.jedrama.fork.ui.SeriesDetailScreen
 import com.jedrama.fork.ui.SettingsScreen
+import com.jedrama.fork.ui.TheaterScreen
+import com.jedrama.fork.ui.JeDramaTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+
+/** Onglets de la barre principale. */
+private enum class MainTab(val route: String, val icon: ImageVector, val labelRes: Int) {
+    ForYou("for_you", Icons.Filled.Home, R.string.nav_for_you),
+    Theater("theater", Icons.Filled.VideoLibrary, R.string.nav_theater),
+    MyList("my_list", Icons.Filled.Bookmark, R.string.nav_my_list),
+    Profile("profile", Icons.Filled.Person, R.string.nav_profile),
+}
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -91,103 +54,116 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var playbackRepository: PlaybackRepository
 
-    @Inject
-    lateinit var generationScheduler: GenerationScheduler
-
-    private val navController = rememberNavController()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             JeDramaTheme {
-                var selectedTab by remember { mutableStateOf(0) }
-
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = { Text(stringResource(R.string.app_name)) },
-                        )
-                    },
-                    bottomBar = {
-                        NavigationBar {
-                            NavigationBarItem(
-                                icon = { Icon(Icons.Default.Home, null) },
-                                label = { Text(stringResource(R.string.nav_home)) },
-                                selected = selectedTab == 0,
-                                onClick = { selectedTab = 0 },
-                            )
-                            NavigationBarItem(
-                                icon = { Icon(Icons.Default.Favorite, null) },
-                                label = { Text(stringResource(R.string.nav_favorites)) },
-                                selected = selectedTab == 1,
-                                onClick = { selectedTab = 1 },
-                            )
-                            NavigationBarItem(
-                                icon = { Icon(Icons.Default.Settings, null) },
-                                label = { Text(stringResource(R.string.nav_settings)) },
-                                selected = selectedTab == 2,
-                                onClick = { selectedTab = 2 },
-                            )
-                        }
-                    },
-                ) { padding ->
-                    if (selectedTab == 0) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = "home",
-                        ) {
-                            composable("home") {
-                                DraftsScreen(
-                                    onOpen = { seriesId ->
-                                        navController.navigate("detail/$seriesId")
-                                    },
-                                    modifier = Modifier.padding(padding),
-                                )
-                            }
-                            composable("detail/{seriesId}") { backStackEntry ->
-                                val seriesId = backStackEntry.arguments?.getString("seriesId") ?: ""
-                                DraftDetailScreen(
-                                    seriesId = seriesId,
-                                    onPlay = { episodeNumber ->
-                                        navController.navigate("player/$seriesId/$episodeNumber")
-                                    },
-                                    onDeleted = {
-                                        navController.popBackStack()
-                                    },
-                                    modifier = Modifier.padding(padding),
-                                )
-                            }
-                            composable("player/{seriesId}/{startEpisode}") { backStackEntry ->
-                                val seriesId = backStackEntry.arguments?.getString("seriesId") ?: ""
-                                val startEpisode = backStackEntry.arguments?.getInt("startEpisode") ?: 1
-                                PlayerScreen(
-                                    seriesId = seriesId,
-                                    startEpisode = startEpisode,
-                                    onBack = {
-                                        navController.popBackStack()
-                                    },
-                                )
-                            }
-                            composable("settings") {
-                                SettingsScreen(
-                                    modifier = Modifier.padding(padding),
-                                )
-                            }
-                        }
-                    } else if (selectedTab == 1) {
-                        FavoritesScreen(
-                            onOpen = { seriesId ->
-                                navController.navigate("detail/$seriesId")
-                            },
-                            modifier = Modifier.padding(padding),
-                        )
-                    } else {
-                        SettingsScreen(
-                            modifier = Modifier.padding(padding),
-                        )
-                    }
-                }
+                AppNav(
+                    seriesRepository = seriesRepository,
+                    playbackRepository = playbackRepository,
+                )
             }
         }
     }
 }
+
+@Composable
+private fun AppNav(
+    seriesRepository: SeriesRepository,
+    playbackRepository: PlaybackRepository,
+) {
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+
+    Scaffold(
+        bottomBar = {
+            // La barre disparaît sur le lecteur plein écran.
+            if (currentRoute != "player/{seriesId}/{startEpisode}") {
+                NavigationBar {
+                    MainTab.entries.forEach { tab ->
+                        NavigationBarItem(
+                            icon = { Icon(tab.icon, null) },
+                            label = { Text(stringResource(tab.labelRes)) },
+                            selected = currentRoute == tab.route ||
+                                (tab == MainTab.ForYou && currentRoute == "series"),
+                            onClick = { navController.navigateToTab(tab.route) },
+                        )
+                    }
+                }
+            }
+        },
+    ) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = MainTab.ForYou.route,
+            modifier = Modifier.padding(padding),
+        ) {
+            composable(MainTab.ForYou.route) {
+                ForYouScreen(
+                    seriesRepository = seriesRepository,
+                    playbackRepository = playbackRepository,
+                    onOpenSeries = { id -> navController.navigate("series/$id") },
+                )
+            }
+            composable(MainTab.Theater.route) {
+                TheaterScreen(
+                    seriesRepository = seriesRepository,
+                    playbackRepository = playbackRepository,
+                    onOpenSeries = { id -> navController.navigate("series/$id") },
+                    onPlaySeries = { id, ep -> navController.navigate("player/$id/$ep") },
+                )
+            }
+            composable(MainTab.MyList.route) {
+                MyListScreen(
+                    seriesRepository = seriesRepository,
+                    playbackRepository = playbackRepository,
+                    onOpenSeries = { id -> navController.navigate("series/$id") },
+                    onPlaySeries = { id, ep -> navController.navigate("player/$id/$ep") },
+                )
+            }
+            composable(MainTab.Profile.route) {
+                ProfileScreen(
+                    seriesRepository = seriesRepository,
+                    playbackRepository = playbackRepository,
+                    onOpenSettings = { navController.navigate("settings") },
+                )
+            }
+            composable("series/{seriesId}") { entry ->
+                val seriesId = entry.arguments?.getString("seriesId") ?: ""
+                SeriesDetailScreen(
+                    seriesId = seriesId,
+                    seriesRepository = seriesRepository,
+                    playbackRepository = playbackRepository,
+                    onPlay = { ep -> navController.navigate("player/$seriesId/$ep") },
+                    onDeleted = { navController.popBackStack() },
+                )
+            }
+            composable("player/{seriesId}/{startEpisode}") { entry ->
+                val seriesId = entry.arguments?.getString("seriesId") ?: ""
+                val startEpisode = entry.arguments?.getInt("startEpisode") ?: 1
+                PlayerScreen(
+                    seriesId = seriesId,
+                    startEpisode = startEpisode,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable("settings") {
+                SettingsScreen()
+            }
+        }
+    }
+}
+
+/**
+ * Navigation entre onglets : un seul exemplaire de chaque destination,
+ * retour au tab précédent restauré (états de défilement préservés).
+ */
+private fun NavHostController.navigateToTab(route: String) {
+    navigate(route) {
+        popUpTo(graph.startDestinationId) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+

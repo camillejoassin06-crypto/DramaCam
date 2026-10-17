@@ -49,6 +49,6 @@ class ImageCache(private val context: Context) {
     fun sizeBytes(): Long = root.walkTopDown().filter { it.isFile }.sumOf { it.length() }
 
     companion object {
-        private const int MAX_CACHE_ENTRIES = 500
+        private const val MAX_CACHE_ENTRIES = 500
     }
 }

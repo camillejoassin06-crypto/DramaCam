@@ -243,7 +243,7 @@ class GeminiTextModel(
          * cles qui les utilisaient deja ; alternative moins gourmande en quota :
          * gemini-3.5-flash-lite. Champ editable dans les Parametres.
          */
-        const val DEFAULT_MODEL = "gemini-3.8-flash"
+        const val DEFAULT_MODEL = "gemini-flash-latest"
     }
 }
 
