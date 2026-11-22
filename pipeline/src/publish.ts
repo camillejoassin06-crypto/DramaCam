@@ -1,12 +1,20 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { CATALOG_PATH, PURGE_THRESHOLD_BYTES, type PipelineEnv } from "./config.ts";
+import {
+  BLOB_MAX_SERIES_BYTES,
+  CATALOG_PATH,
+  PURGE_THRESHOLD_BYTES,
+  mediaPublicBaseUrl,
+  type PipelineEnv,
+} from "./config.ts";
 import { formatBytes, listFiles } from "./fsutil.ts";
 import { catalogSchema, findExcludedTerms, type Catalog, type SeriesEntry } from "./schemas/catalog.ts";
 
 /**
- * Publication : upload R2 -> purge si bucket > 9 Go -> mise a jour de
- * catalog.json. R2 free = 10 Go, le seuil laisse une marge d'une serie.
+ * Publication, selon MEDIA_STORAGE :
+ * - r2 : upload -> purge si bucket > 9 Go -> mise a jour de catalog.json.
+ *   R2 free = 10 Go, le seuil laisse une marge d'une serie.
+ * - vercel-blob : une seule serie a la fois (cf. publishToBlob).
  */
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -82,14 +90,75 @@ export function seriesToPurge(
   return purge;
 }
 
-interface R2Client {
-  put(key: string, body: Buffer, contentType: string): Promise<void>;
+/** Stockage des medias. Ajouter un fournisseur = une fabrique de plus. */
+export interface MediaStore {
+  readonly name: string;
+  /** Renvoie l'URL publique de l'objet. */
+  put(key: string, body: Buffer, contentType: string): Promise<string>;
   deletePrefix(prefix: string): Promise<number>;
   usageBytes(): Promise<number>;
 }
 
+/**
+ * Vercel Blob ne tient qu'une serie (1 Go, blocage de 30 jours au-dela) :
+ * on vide `series/` AVANT l'envoi et on refuse une serie trop lourde. Rien
+ * n'est envoye tant que ces deux conditions ne sont pas reunies.
+ */
+export function assertFitsBlob(seriesBytes: number, limit = BLOB_MAX_SERIES_BYTES): void {
+  if (seriesBytes > limit) {
+    throw new Error(
+      `serie de ${formatBytes(seriesBytes)} > plafond Vercel Blob ${formatBytes(limit)} : ` +
+        "envoi annule (un depassement bloquerait le stockage 30 jours)",
+    );
+  }
+}
+
 /** Import dynamique : un dry-run n'a besoin ni du SDK ni de credentials. */
-async function createR2Client(env: PipelineEnv): Promise<R2Client> {
+async function createBlobStore(env: PipelineEnv): Promise<MediaStore> {
+  const token = env.blobToken;
+  if (!token) throw new Error("BLOB_READ_WRITE_TOKEN absent (GitHub Secrets)");
+  const { put, list, del } = await import("@vercel/blob");
+
+  const listAll = async (prefix: string) => {
+    const blobs: { url: string; size: number }[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await list({ prefix, cursor, limit: 1000, token });
+      for (const blob of page.blobs) blobs.push({ url: blob.url, size: blob.size });
+      cursor = page.hasMore ? page.cursor : undefined;
+    } while (cursor);
+    return blobs;
+  };
+
+  return {
+    name: "vercel-blob",
+    async put(key, body, contentType) {
+      const result = await put(key, body, {
+        access: "public",
+        token,
+        contentType,
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        cacheControlMaxAge: 31_536_000,
+        multipart: body.length > 100 * 1024 ** 2,
+      });
+      return result.url;
+    },
+    async deletePrefix(prefix) {
+      const blobs = await listAll(prefix);
+      for (let index = 0; index < blobs.length; index += 1000) {
+        await del(blobs.slice(index, index + 1000).map((blob) => blob.url), { token });
+      }
+      return blobs.length;
+    },
+    async usageBytes() {
+      return (await listAll("")).reduce((sum, blob) => sum + blob.size, 0);
+    },
+  };
+}
+
+/** Import dynamique : un dry-run n'a besoin ni du SDK ni de credentials. */
+async function createR2Client(env: PipelineEnv): Promise<MediaStore> {
   if (!env.r2AccountId || !env.r2AccessKeyId || !env.r2SecretAccessKey) {
     throw new Error("R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY absents (GitHub Secrets)");
   }
@@ -121,6 +190,7 @@ async function createR2Client(env: PipelineEnv): Promise<R2Client> {
   };
 
   return {
+    name: "r2",
     async put(key, body, contentType) {
       await client.send(
         new PutObjectCommand({
@@ -131,6 +201,7 @@ async function createR2Client(env: PipelineEnv): Promise<R2Client> {
           CacheControl: "public, max-age=31536000, immutable",
         }),
       );
+      return `${env.r2PublicBaseUrl.replace(/\/$/, "")}/${key}`;
     },
     async deletePrefix(prefix) {
       const keys = await listAll(prefix);
@@ -168,9 +239,17 @@ export async function publishSeries(options: PublishOptions): Promise<Catalog> {
   const files = await listFiles(options.mediaDir);
   const prefix = `series/${options.series.id}`;
 
+  const storage = options.env.mediaStorage;
   if (options.dryRun) {
-    log(`[dry-run] ${files.length} fichiers seraient envoyes sous ${prefix}/ (aucun appel R2)`);
-    return upsertSeries(catalog, options.series);
+    if (storage === "vercel-blob") assertFitsBlob(options.series.totalBytes);
+    log(`[dry-run] ${files.length} fichiers seraient envoyes sur ${storage} sous ${prefix}/ (aucun appel)`);
+    return storage === "vercel-blob"
+      ? { ...upsertSeries(catalog, options.series), series: [options.series] }
+      : upsertSeries(catalog, options.series);
+  }
+
+  if (storage === "vercel-blob") {
+    return publishToBlob(options, catalog, files, prefix, log);
   }
 
   const client = await createR2Client(options.env);
@@ -196,4 +275,40 @@ export async function publishSeries(options: PublishOptions): Promise<Catalog> {
   }
 
   return updated;
+}
+
+/**
+ * Vercel Blob : verifie le poids, vide `series/`, envoie, puis ne garde au
+ * catalogue que la serie publiee. L'URL rendue par le premier envoi doit
+ * correspondre a celle deja ecrite dans le catalogue, sinon on s'arrete.
+ */
+async function publishToBlob(
+  options: PublishOptions,
+  catalog: Catalog,
+  files: readonly string[],
+  prefix: string,
+  log: (message: string) => void,
+): Promise<Catalog> {
+  assertFitsBlob(options.series.totalBytes);
+  const store = await createBlobStore(options.env);
+  const expectedBase = mediaPublicBaseUrl(options.env);
+
+  const removed = await store.deletePrefix("series/");
+  if (removed > 0) log(`Vercel Blob : ${removed} objets de la serie precedente supprimes`);
+
+  for (const [index, file] of files.entries()) {
+    const key = `${prefix}/${file}`;
+    const body = await fs.readFile(path.join(options.mediaDir, file));
+    const url = await store.put(key, body, contentTypeFor(file));
+    if (index === 0 && url !== `${expectedBase}/${key}`) {
+      throw new Error(`URL Vercel Blob inattendue : ${url} (catalogue : ${expectedBase}/${key})`);
+    }
+  }
+  log(`${files.length} fichiers publies sur Vercel Blob sous ${prefix}/`);
+
+  const usage = await store.usageBytes();
+  log(`occupation Vercel Blob : ${formatBytes(usage)} / plafond ${formatBytes(BLOB_MAX_SERIES_BYTES)}`);
+
+  // Les autres series n'ont plus de medias : elles quittent le catalogue.
+  return { ...upsertSeries(catalog, options.series), series: [options.series] };
 }

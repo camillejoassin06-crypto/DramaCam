@@ -21,6 +21,18 @@ export const VARIANT_480P: HlsVariant = {
   audioBitrateKbps: 96,
 };
 
+/**
+ * 480p allege pour Vercel Blob (1 Go) : ~660 Mo pour 50 episodes de 2:40,
+ * contre ~840 Mo avec VARIANT_480P.
+ */
+export const VARIANT_480P_LITE: HlsVariant = {
+  name: "480p",
+  width: 480,
+  height: 854,
+  videoBitrateKbps: 600,
+  audioBitrateKbps: 64,
+};
+
 export const VARIANT_720P: HlsVariant = {
   name: "720p",
   width: 720,
@@ -60,7 +72,12 @@ export async function packageHls(
       "-f", "hls",
       "-hls_time", String(SEGMENT_SECONDS),
       "-hls_playlist_type", "vod",
-      "-hls_segment_filename", path.join(outDir, `${variant.name}_%03d.ts`),
+      // Un seul .ts par variante, lu par plages d'octets (EXT-X-BYTERANGE, que
+      // Media3 sait lire) : ~5 objets par episode au lieu de ~40. Indispensable
+      // sous le quota de 2 000 envois/mois de Vercel Blob, et moins de requetes
+      // pour R2.
+      "-hls_flags", "single_file",
+      "-hls_segment_filename", path.join(outDir, `${variant.name}.ts`),
       path.join(outDir, `${variant.name}.m3u8`),
     ]);
   }

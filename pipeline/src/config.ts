@@ -30,6 +30,13 @@ export const DEFAULT_EPISODE_COUNT = 50;
 /** R2 free = 10 Go. On purge la serie la plus ancienne au-dela de 9 Go. */
 export const PURGE_THRESHOLD_BYTES = 9 * 1024 ** 3;
 
+/**
+ * Vercel Blob (Hobby) = 1 Go, et tout depassement BLOQUE le stockage 30 jours
+ * (aucune facture, mais plus aucune video lisible). Une seule serie y vit a la
+ * fois, et on refuse d'envoyer une serie qui depasserait ce plafond.
+ */
+export const BLOB_MAX_SERIES_BYTES = 900 * 1024 ** 2;
+
 /** Rendu vertical. */
 export const VIDEO_WIDTH = 1080;
 export const VIDEO_HEIGHT = 1920;
@@ -44,7 +51,13 @@ export const STYLE_LOCK =
   "muted violet and gold palette, 35mm film grain, photorealistic, " +
   "no text, no watermark, no logo";
 
+export type MediaStorage = "vercel-blob" | "r2";
+
 export interface PipelineEnv {
+  /** Ou vivent les videos : Vercel Blob (essai) ou Cloudflare R2. */
+  mediaStorage: MediaStorage;
+  /** Jeton du store Vercel Blob (GitHub Secrets, jamais dans le repo). */
+  blobToken: string | undefined;
   r2AccountId: string | undefined;
   r2AccessKeyId: string | undefined;
   r2SecretAccessKey: string | undefined;
@@ -56,7 +69,13 @@ export interface PipelineEnv {
 }
 
 export function readEnv(source: NodeJS.ProcessEnv = process.env): PipelineEnv {
+  const storage = source.MEDIA_STORAGE || "r2";
+  if (storage !== "vercel-blob" && storage !== "r2") {
+    throw new Error(`MEDIA_STORAGE inconnu : ${storage} (attendu : vercel-blob ou r2)`);
+  }
   return {
+    mediaStorage: storage,
+    blobToken: source.BLOB_READ_WRITE_TOKEN || undefined,
     r2AccountId: source.R2_ACCOUNT_ID,
     r2AccessKeyId: source.R2_ACCESS_KEY_ID,
     r2SecretAccessKey: source.R2_SECRET_ACCESS_KEY,
@@ -66,4 +85,19 @@ export function readEnv(source: NodeJS.ProcessEnv = process.env): PipelineEnv {
     imageProvider: source.IMAGE_PROVIDER ?? "placeholder",
     comfyUiUrl: source.COMFYUI_URL ?? "http://127.0.0.1:8188",
   };
+}
+
+/**
+ * Base publique des medias, ecrite dans catalog.json AVANT l'envoi.
+ * Vercel Blob : `https://<storeId>.public.blob.vercel-storage.com`, ou storeId
+ * est le 4e segment du jeton `vercel_blob_rw_<storeId>_<secret>` (meme regle
+ * que le SDK @vercel/blob ; publish.ts verifie l'URL rendue au premier envoi).
+ */
+export function mediaPublicBaseUrl(env: PipelineEnv): string {
+  if (env.mediaStorage === "r2") return env.r2PublicBaseUrl.replace(/\/$/, "");
+  const storeId = env.blobToken?.split("_")[3];
+  if (!storeId) {
+    throw new Error("BLOB_READ_WRITE_TOKEN absent ou invalide (GitHub Secrets) pour MEDIA_STORAGE=vercel-blob");
+  }
+  return `https://${storeId.toLowerCase()}.public.blob.vercel-storage.com`;
 }

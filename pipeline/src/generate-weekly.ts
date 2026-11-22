@@ -12,6 +12,7 @@ import {
   SHOTS_PER_EPISODE,
   VIDEO_HEIGHT,
   VIDEO_WIDTH,
+  mediaPublicBaseUrl,
   readEnv,
   type PipelineEnv,
 } from "./config.ts";
@@ -26,7 +27,7 @@ import {
   buildImagePrompt,
   type ImageProvider,
 } from "./images/index.ts";
-import { packageHls } from "./hls.ts";
+import { VARIANT_480P, VARIANT_480P_LITE, packageHls } from "./hls.ts";
 import { assertOriginalTitle, publishSeries, readCatalog, writeCatalog } from "./publish.ts";
 import { renderEpisode, type ShotAsset } from "./render.ts";
 import { bibleSchema, type Bible } from "./schemas/bible.ts";
@@ -104,6 +105,17 @@ async function pickImages(env: PipelineEnv, dryRun: boolean, log: Logger): Promi
   }
   log("aucun fournisseur d'images disponible : repli placeholder");
   return new PlaceholderImageProvider();
+}
+
+/** En dry-run, un jeton absent ne bloque pas : on retombe sur la base R2 fictive. */
+function resolveMediaBase(env: PipelineEnv, dryRun: boolean, log: Logger): string {
+  try {
+    return mediaPublicBaseUrl(env);
+  } catch (error) {
+    if (!dryRun) throw error;
+    log(`[dry-run] ${(error as Error).message} : base fictive utilisee`);
+    return stripTrailingSlash(env.r2PublicBaseUrl);
+  }
 }
 
 async function main(): Promise<void> {
@@ -198,6 +210,9 @@ async function main(): Promise<void> {
   });
 
   // 4. Episodes ------------------------------------------------------------
+  // Vercel Blob (1 Go) impose un 480p allege ; R2 garde le 480p standard.
+  const variants = [env.mediaStorage === "vercel-blob" ? VARIANT_480P_LITE : VARIANT_480P];
+  const mediaBase = resolveMediaBase(env, args.dryRun, log);
   const entries: EpisodeEntry[] = [];
   let seriesBytes = 0;
 
@@ -334,7 +349,7 @@ async function main(): Promise<void> {
         outPath: path.join(workDir, "episode.mp4"),
         workDir,
       });
-      const packaged = await packageHls(rendered.outPath, episodeDir);
+      const packaged = await packageHls(rendered.outPath, episodeDir, variants);
       durationSeconds = Math.round(rendered.durationSeconds);
       sizeBytes = packaged.sizeBytes;
     }
@@ -349,7 +364,7 @@ async function main(): Promise<void> {
     }
 
     seriesBytes += sizeBytes;
-    const base = `${stripTrailingSlash(env.r2PublicBaseUrl)}/series/${concept.id}/ep-${pad3(number)}`;
+    const base = `${mediaBase}/series/${concept.id}/ep-${pad3(number)}`;
     entries.push({
       number,
       title: script.title,
@@ -371,7 +386,7 @@ async function main(): Promise<void> {
     genres: concept.genres,
     language: concept.language,
     badges: ["NOUVEAU"],
-    coverUrl: `${stripTrailingSlash(env.r2PublicBaseUrl)}/series/${concept.id}/cover.png`,
+    coverUrl: `${mediaBase}/series/${concept.id}/cover.png`,
     publishedAt: new Date().toISOString(),
     totalBytes: seriesBytes,
     episodes: entries,

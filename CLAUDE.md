@@ -11,7 +11,9 @@ Usage STRICTEMENT personnel : 2-3 appareils, APK sideloadé, PERSONAL_MODE
 ## Architecture (ne pas la contredire)
 
 - PAS de backend : le catalogue est le fichier `catalog/catalog.json` servi par
-  GitHub Pages ; les vidéos sont sur Cloudflare R2 (bucket public, free 10 Go).
+  Vercel (projet `dramacam`, `vercel.json`) et GitHub Pages. Les vidéos sont
+  sur Vercel Blob (`MEDIA_STORAGE=vercel-blob`, **essai décidé le 2026-11-22**)
+  ou sur Cloudflare R2 (`MEDIA_STORAGE=r2`, bucket public, free 10 Go).
 - App Android Kotlin + Jetpack Compose + Media3, `BuildConfig.PERSONAL_MODE=true`.
   Source de données unique : `StaticCatalogRepository` (parse catalog.json,
   cache Room). Progression/favoris : 100 % local (Room), aucune API.
@@ -85,6 +87,12 @@ Usage STRICTEMENT personnel : 2-3 appareils, APK sideloadé, PERSONAL_MODE
 
 - R2 free = 10 Go (~10-12 séries 480p) : `pipeline/src/publish.ts` vérifie la
   taille du bucket et purge la plus ancienne série si > 9 Go.
+- Vercel Blob Hobby = 1 Go, 10 Go lus/mois, 2 000 envois/mois, et tout
+  dépassement **bloque le stockage 30 jours** (pas de facture, mais plus aucune
+  vidéo). D'où : une seule série à la fois (`series/` vidé avant l'envoi), refus
+  d'envoyer au-delà de `BLOB_MAX_SERIES_BYTES` (900 Mo), 480p allégé
+  (`VARIANT_480P_LITE`) et HLS `single_file` (~5 objets/épisode). Ne jamais
+  relâcher ces garde-fous.
 - Fair-use Claude Code : 1 série/semaine max via `claude -p`. Par épisode,
   1 génération + 2 régénérations maximum
   (`MAX_ATTEMPTS_PER_EPISODE = 3` dans `pipeline/src/config.ts`).
