@@ -55,12 +55,13 @@ android {
         // (cf. CLAUDE.md).
         buildConfigField("boolean", "PERSONAL_MODE", "true")
 
-        // Unique source de donnees : catalog.json servi par GitHub Pages.
+        // Unique source de donnees : catalog.json, servi par Vercel (projet
+        // `dramacam`, redeploye a chaque push sur main, cf. vercel.json).
         // Aucun secret ici : l'URL est publique et l'APK ne contient rien d'autre.
         buildConfigField(
             "String",
             "CATALOG_URL",
-            "\"https://example-placeholder.github.io/dramaforge/catalog.json\"",
+            "\"https://dramacam.vercel.app/catalog.json\"",
         )
     }
 
