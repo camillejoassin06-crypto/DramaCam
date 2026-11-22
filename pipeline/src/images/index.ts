@@ -46,4 +46,5 @@ function escapeRegExp(value: string): string {
 
 export { LocalSdProvider } from "./local-sd.ts";
 export { AiStudioProvider } from "./ai-studio.ts";
+export { NvidiaNimProvider } from "./nvidia-nim.ts";
 export { PlaceholderImageProvider } from "./placeholder.ts";

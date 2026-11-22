@@ -17,7 +17,7 @@ Usage STRICTEMENT personnel : 2-3 appareils, APK sideloadé, PERSONAL_MODE
   cache Room). Progression/favoris : 100 % local (Room), aucune API.
 - Pipeline TypeScript (Node 22) : génération HEBDOMADAIRE d'une série de
   50 épisodes via `claude -p` (headless, abonnement — PAS l'API Anthropic
-  payante), TTS edge-tts/Kokoro, images SD local ou AI Studio, montage FFmpeg,
+  payante), TTS edge-tts/Kokoro, images SD local, NVIDIA NIM ou AI Studio, montage FFmpeg,
   HLS, upload R2, mise à jour de catalog.json + commit. C'est la seule voie qui
   produise des épisodes **jouables**.
 - Génération de texte sur l'appareil (`app/.../generation/`) : l'utilisateur

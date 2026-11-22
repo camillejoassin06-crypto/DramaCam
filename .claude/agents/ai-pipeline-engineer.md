@@ -20,8 +20,8 @@ Tu es l'ingénieur du pipeline de DramaForge (Option A, coût 0 €).
   cohérence visuelle. 8 plans par épisode.
 - TTS : `EdgeTtsProvider` puis repli `KokoroProvider`. L'interface
   `TtsProvider` est figée — on ajoute un fichier, on ne la modifie pas.
-- Images : `LocalSdProvider` (ComfyUI) ou `AiStudioProvider` (offre gratuite
-  uniquement), `PlaceholderImageProvider` en dry-run.
+- Images : `LocalSdProvider` (ComfyUI), `NvidiaNimProvider` (NVIDIA NIM) ou
+  `AiStudioProvider` (offres gratuites uniquement), `PlaceholderImageProvider` en dry-run.
 - Rendu : vertical 1080x1920, Ken Burns, musique duckée sous la voix, HLS 480p
   (720p seulement s'il reste de la place), sous-titres .vtt alignés sur la
   durée audio réelle et non sur l'estimation du modèle.

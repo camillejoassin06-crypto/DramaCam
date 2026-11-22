@@ -21,6 +21,7 @@ import { DRY_RUN_CONCEPT, dryRunBible, dryRunScript } from "./fixtures.ts";
 import {
   AiStudioProvider,
   LocalSdProvider,
+  NvidiaNimProvider,
   PlaceholderImageProvider,
   buildImagePrompt,
   type ImageProvider,
@@ -92,10 +93,12 @@ async function pickTts(env: PipelineEnv, dryRun: boolean, log: Logger): Promise<
 
 async function pickImages(env: PipelineEnv, dryRun: boolean, log: Logger): Promise<ImageProvider> {
   if (dryRun || env.imageProvider === "placeholder") return new PlaceholderImageProvider();
-  const candidates: ImageProvider[] =
-    env.imageProvider === "ai-studio"
-      ? [new AiStudioProvider(), new LocalSdProvider()]
-      : [new LocalSdProvider(), new AiStudioProvider()];
+  // Le fournisseur demande passe en tete, les autres servent de repli.
+  const all: ImageProvider[] = [new LocalSdProvider(), new NvidiaNimProvider(), new AiStudioProvider()];
+  const candidates = [
+    ...all.filter((provider) => provider.name === env.imageProvider),
+    ...all.filter((provider) => provider.name !== env.imageProvider),
+  ];
   for (const provider of candidates) {
     if (await provider.isAvailable()) return provider;
   }

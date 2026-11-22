@@ -37,6 +37,10 @@ locale, `KOKORO_URL`), puis sur le placeholder en dernier recours.
   workflow reste à renseigner dans `pipeline/src/images/local-sd.ts`.
 - `IMAGE_PROVIDER=ai-studio` : offre **gratuite** uniquement, clé dans
   `AI_STUDIO_API_KEY`. Ne jamais activer un plan facturé (cf. CLAUDE.md).
+- `IMAGE_PROVIDER=nvidia-nim` : API hébergée NVIDIA NIM (FLUX.1-schnell par
+  défaut, `NIM_IMAGE_MODEL` pour en changer). Accès développeur **gratuit**
+  uniquement, clé `nvapi-...` dans `NVIDIA_API_KEY` (GitHub Secrets). Le quota
+  gratuit est limité en débit : une série complète demande ~400 images.
 
 ## Android
 

@@ -69,6 +69,8 @@ jobs:
           TTS_PROVIDER: edge-tts
           IMAGE_PROVIDER: ${{ vars.IMAGE_PROVIDER || 'placeholder' }}
           AI_STUDIO_API_KEY: ${{ secrets.AI_STUDIO_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NIM_IMAGE_MODEL: ${{ vars.NIM_IMAGE_MODEL }}
         run: |
           EPISODES="${{ inputs.episodes || '50' }}"
           if [ "${{ inputs.dry_run }}" = "true" ]; then
